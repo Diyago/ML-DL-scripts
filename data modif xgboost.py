@@ -56,7 +56,7 @@ clf = xgb.XGBClassifier(missing=np.nan, max_depth=6,
                         subsample=1, colsample_bytree=0.9, seed=1488)
 
 # fitting
-clf.fit(X_fit, y_fit, early_stopping_rounds=50, eval_metric="logloss", eval_set=[(X_eval, y_eval)])
+clf.fit(X_fit, y_fit, early_stopping_rounds=50, objective= 'binary:logistic', eval_metric="logloss", eval_set=[(X_eval, y_eval)])
 
 # scores
 from  sklearn.metrics import log_loss
@@ -74,11 +74,13 @@ print(clf.get_params())
 
 
 #print y_pred
-y_pred= clf.predict_proba(test)[:,1]
+y_pred= clf.predict_proba(test,ntree_limit=bst.best_ntree_limit)[:,1]
 submission = pd.DataFrame({"ID":id_test, "PredictedProb":y_pred})
 submission.to_csv("submission.csv", index=False)
 
 print ("Success")
 #########################################################
+
+
 
 
