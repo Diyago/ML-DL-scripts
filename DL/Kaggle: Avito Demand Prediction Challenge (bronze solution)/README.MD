@@ -9,7 +9,7 @@ I with my team ranked 131st (TOP 7%) in the Avito Demand Prediction Challenge on
 Teammates:
 
 * @artgor
-* @Nikita
+* @Nikita https://github.com/ML-Person/My-solution-to-Avito-Challenge-2018
 * @Kmike
 
 I want to thank opendatascience (http://ODS.ai/) community.
