@@ -1,5 +1,5 @@
-# Kaggle Santander Value Prediction Challenge
-
+# Kaggle Santander Value Prediction Challenge (108th place - silver)
+ 
 https://www.kaggle.com/c/santander-value-prediction-challenge
 
 
@@ -11,4 +11,4 @@ In this competition, Santander Group is asking Kagglers to help them identify th
 
 
 
-** This repository provides basic solution, which were enough to get silver solution
+## This repository provides basic solution, which were enough to get silver solution
