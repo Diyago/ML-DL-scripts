@@ -1,0 +1,90 @@
+project: neptune-ml/Salt-Detection
+
+name: tgs_salt_identification_challenge
+tags: [solution-3]
+
+metric:
+  channel: 'IOUT'
+  goal: maximize
+
+#Comment out if not in Cloud Environment
+#pip-requirements-file: requirements.txt
+
+exclude:
+- .git
+- .idea
+- .ipynb_checkpoints
+- output
+- imgs
+- neptune.log
+- offline_job.log
+- notebooks
+
+parameters:
+  # Data Paths
+  train_images_dir: ../input/train
+  test_images_dir: ../input/test
+  metadata_filepath: ./meta/files/metadata.csv
+  depths_filepath: ../input/depths.csv
+  experiment_dir: ./experiments/resnets_regularization
+
+    # Execution
+  fine_tuning: 1
+  overwrite: 1
+  num_workers: 8
+  num_threads: 8
+  kaggle_message: 'solution-5'
+  image_source: disk
+  pin_memory: 1
+  loader_mode: resize_and_pad
+  resize_target_size: 102
+  pad_size: 13
+  pad_method: edge
+  target_format: 'png'
+  dev_mode_size: 20
+  n_cv_splits: 6
+  shuffle: 1
+
+  # General parameters
+  image_h: 128
+  image_w: 128
+  image_channels: 3
+
+  # U-Net parameters
+  unet_output_channels: 2
+  unet_activation: 'sigmoid'
+  encoder: ResNet152
+
+  # U-Net from scratch parameters
+  nr_unet_outputs: 1
+  n_filters: 32
+  conv_kernel: 3
+  pool_kernel: 3
+  pool_stride: 2
+  repeat_blocks: 4
+
+  # Loss
+  dice_weight: 0
+  bce_weight: 1.0
+
+  # Training schedule
+  epochs_nr: 75
+  batch_size_train: 20
+  batch_size_inference: 20
+  lr: 0.0000007
+  momentum: 0.9
+  gamma: 0.95
+  patience: 75
+  validation_metric_name: 'iout'
+  minimize_validation_metric: 0
+
+  # Regularization
+  use_batch_norm: 1
+  l2_reg_conv: 0.0001
+  l2_reg_dense: 0.0
+  dropout_conv: 0.0
+  dropout_dense: 0.0
+
+  # Postprocessing
+  threshold_masks: 0.45
+  tta_aggregation_method: mean
