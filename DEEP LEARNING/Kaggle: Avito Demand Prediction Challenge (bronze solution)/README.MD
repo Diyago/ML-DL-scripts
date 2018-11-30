@@ -8,7 +8,7 @@ Avito, Russia’s largest classified advertisements website, is deeply familiar 
 
 In their fourth Kaggle competition, Avito is challenging you to predict demand for an online advertisement based on its full description (title, description, images, etc.), its context (geographically where it was posted, similar ads already posted) and historical demand for similar ads in similar contexts. With this information, Avito can inform sellers on how to best optimize their listing and provide some indication of how much interest they should realistically expect to receive.
 
-I with my team ranked 131st (TOP 7%) in the Avito Demand Prediction Challenge on Kaggle platform
+I with my team ranked 131st (TOP 7%) in the Avito Demand Prediction Challenge on Kaggle platform. And achieved bronze medals/
 
 
 
