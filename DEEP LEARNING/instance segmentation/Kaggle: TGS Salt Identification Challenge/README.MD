@@ -1,6 +1,7 @@
 ## Solution to TGS Salt Identification Challenge 2018
 
 Link: https://www.kaggle.com/c/tgs-salt-identification-challenge
+Detailed solution explanation: https://medium.com/@insafashrapov/kaggle-salt-identification-challenge-7fc502d1c3c3
 
 Several areas of Earth with large accumulations of oil and gas also have huge deposits of salt below the surface.
 
