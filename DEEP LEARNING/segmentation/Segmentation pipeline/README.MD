@@ -12,7 +12,6 @@ Link to dataset uploaded to kaggle https://www.kaggle.com/insaff/massachusetts-r
 
 **Reference**
 
-@phdthesis{
 
     MnihThesis,
 
@@ -23,7 +22,6 @@ Link to dataset uploaded to kaggle https://www.kaggle.com/insaff/massachusetts-r
     school = {University of Toronto},
     
     year = {2013}
-    
-}
+
 
 
