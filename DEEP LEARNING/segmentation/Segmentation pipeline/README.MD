@@ -12,11 +12,18 @@ Link to dataset uploaded to kaggle https://www.kaggle.com/insaff/massachusetts-r
 
 **Reference**
 
-@phdthesis{MnihThesis,
+@phdthesis{
+
+    MnihThesis,
+
     author = {Volodymyr Mnih},
+    
     title = {Machine Learning for Aerial Image Labeling},
+    
     school = {University of Toronto},
+    
     year = {2013}
+    
 }
 
 
