@@ -33,16 +33,25 @@ class ABN(nn.Sequential):
         kwargs
             All other arguments are forwarded to the `BatchNorm2d` constructor.
         """
-        super(ABN, self).__init__(OrderedDict([
-            ("bn", nn.BatchNorm2d(num_features, **kwargs)),
-            ("act", activation)
-        ]))
+        super(ABN, self).__init__(
+            OrderedDict(
+                [("bn", nn.BatchNorm2d(num_features, **kwargs)), ("act", activation)]
+            )
+        )
 
 
 class InPlaceABN(nn.Module):
     """InPlace Activated Batch Normalization"""
 
-    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True, activation="leaky_relu", slope=0.01):
+    def __init__(
+        self,
+        num_features,
+        eps=1e-5,
+        momentum=0.1,
+        affine=True,
+        activation="leaky_relu",
+        slope=0.01,
+    ):
         """Creates an InPlace Activated Batch Normalization module
 
         Parameters
@@ -71,10 +80,10 @@ class InPlaceABN(nn.Module):
             self.weight = nn.Parameter(torch.Tensor(num_features))
             self.bias = nn.Parameter(torch.Tensor(num_features))
         else:
-            self.register_parameter('weight', None)
-            self.register_parameter('bias', None)
-        self.register_buffer('running_mean', torch.zeros(num_features))
-        self.register_buffer('running_var', torch.ones(num_features))
+            self.register_parameter("weight", None)
+            self.register_parameter("bias", None)
+        self.register_buffer("running_mean", torch.zeros(num_features))
+        self.register_buffer("running_var", torch.ones(num_features))
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -85,17 +94,28 @@ class InPlaceABN(nn.Module):
             self.bias.data.zero_()
 
     def forward(self, x):
-        return inplace_abn(x, self.weight, self.bias, autograd.Variable(self.running_mean),
-                           autograd.Variable(self.running_var), self.training, self.momentum, self.eps,
-                           self.activation, self.slope)
+        return inplace_abn(
+            x,
+            self.weight,
+            self.bias,
+            autograd.Variable(self.running_mean),
+            autograd.Variable(self.running_var),
+            self.training,
+            self.momentum,
+            self.eps,
+            self.activation,
+            self.slope,
+        )
 
     def __repr__(self):
-        rep = '{name}({num_features}, eps={eps}, momentum={momentum},' \
-              ' affine={affine}, activation={activation}'
+        rep = (
+            "{name}({num_features}, eps={eps}, momentum={momentum},"
+            " affine={affine}, activation={activation}"
+        )
         if self.activation == "leaky_relu":
-            rep += ' slope={slope})'
+            rep += " slope={slope})"
         else:
-            rep += ')'
+            rep += ")"
         return rep.format(name=self.__class__.__name__, **self.__dict__)
 
 

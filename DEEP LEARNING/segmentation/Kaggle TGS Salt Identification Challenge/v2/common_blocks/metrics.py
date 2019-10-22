@@ -6,11 +6,11 @@ from .utils import get_segmentations
 
 
 def iou(gt, pred):
-    gt[gt > 0] = 1.
-    pred[pred > 0] = 1.
+    gt[gt > 0] = 1.0
+    pred[pred > 0] = 1.0
     intersection = gt * pred
     union = gt + pred
-    union[union > 0] = 1.
+    union[union > 0] = 1.0
     intersection = np.sum(intersection)
     union = np.sum(union)
     if union == 0:

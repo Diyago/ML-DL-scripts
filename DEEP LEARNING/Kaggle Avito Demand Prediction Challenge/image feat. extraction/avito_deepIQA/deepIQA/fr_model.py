@@ -6,29 +6,22 @@ from chainer import cuda
 
 
 class FRModel(chainer.Chain):
-
     def __init__(self, top="patchwise"):
         super(FRModel, self).__init__(
             # feature extraction
             conv1=L.Convolution2D(3, 32, 3, pad=1),
             conv2=L.Convolution2D(32, 32, 3, pad=1),
-
             conv3=L.Convolution2D(32, 64, 3, pad=1),
             conv4=L.Convolution2D(64, 64, 3, pad=1),
-
             conv5=L.Convolution2D(64, 128, 3, pad=1),
             conv6=L.Convolution2D(128, 128, 3, pad=1),
-
             conv7=L.Convolution2D(128, 256, 3, pad=1),
             conv8=L.Convolution2D(256, 256, 3, pad=1),
-
             conv9=L.Convolution2D(256, 512, 3, pad=1),
             conv10=L.Convolution2D(512, 512, 3, pad=1),
-
             # quality regression
             fc1=L.Linear(512 * 3, 512),
-            fc2=L.Linear(512, 1)
-
+            fc2=L.Linear(512, 1),
         )
 
         self.top = top
@@ -66,8 +59,7 @@ class FRModel(chainer.Chain):
         h = F.max_pooling_2d(h, 2)
         return h
 
-    def forward(self, x_data, x_ref_data, y_data, train=True,
-                n_patches_per_image=32):
+    def forward(self, x_data, x_ref_data, y_data, train=True, n_patches_per_image=32):
 
         xp = cuda.cupy
 

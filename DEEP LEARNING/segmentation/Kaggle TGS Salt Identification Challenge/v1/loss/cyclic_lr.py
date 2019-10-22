@@ -2,6 +2,7 @@ import torch
 import math
 from torch.optim.lr_scheduler import _LRScheduler
 
+
 class CosineAnnealingLR_with_Restart(_LRScheduler):
     """Set the learning rate of each parameter group using a cosine annealing
     schedule, where :math:`\eta_{max}` is set to the initial lr and
@@ -33,7 +34,17 @@ class CosineAnnealingLR_with_Restart(_LRScheduler):
         https://arxiv.org/abs/1608.03983
     """
 
-    def __init__(self, optimizer, T_max, T_mult, model, out_dir, take_snapshot, eta_min=0, last_epoch=-1):
+    def __init__(
+        self,
+        optimizer,
+        T_max,
+        T_mult,
+        model,
+        out_dir,
+        take_snapshot,
+        eta_min=0,
+        last_epoch=-1,
+    ):
         self.T_max = T_max
         self.T_mult = T_mult
         self.Te = self.T_max
@@ -49,9 +60,13 @@ class CosineAnnealingLR_with_Restart(_LRScheduler):
         super(CosineAnnealingLR_with_Restart, self).__init__(optimizer, last_epoch)
 
     def get_lr(self):
-        new_lrs = [self.eta_min + (base_lr - self.eta_min) *
-                   (1 + math.cos(math.pi * self.current_epoch / self.Te)) / 2
-                   for base_lr in self.base_lrs]
+        new_lrs = [
+            self.eta_min
+            + (base_lr - self.eta_min)
+            * (1 + math.cos(math.pi * self.current_epoch / self.Te))
+            / 2
+            for base_lr in self.base_lrs
+        ]
 
         self.lr_history.append(new_lrs)
         return new_lrs
@@ -63,17 +78,19 @@ class CosineAnnealingLR_with_Restart(_LRScheduler):
         self.current_epoch += 1
 
         for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
-            param_group['lr'] = lr
+            param_group["lr"] = lr
 
         ## restart
         if self.current_epoch == self.Te:
             print("restart at epoch {:03d}".format(self.last_epoch + 1))
 
             if self.take_snapshot:
-                torch.save({
-                    'epoch': self.T_max,
-                    'state_dict': self.model.state_dict()
-                }, self.out_dir + "Weight/" + 'snapshot_e_{:03d}.pth.tar'.format(self.T_max))
+                torch.save(
+                    {"epoch": self.T_max, "state_dict": self.model.state_dict()},
+                    self.out_dir
+                    + "Weight/"
+                    + "snapshot_e_{:03d}.pth.tar".format(self.T_max),
+                )
 
             ## reset epochs since the last reset
             self.current_epoch = 0

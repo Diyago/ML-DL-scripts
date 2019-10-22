@@ -14,13 +14,20 @@ from steppy.adapter import Adapter, E
 from toolkit.pytorch_transformers.utils import Averager, persist_torch_model
 from toolkit.pytorch_transformers.validation import score_model
 
-from .utils import get_logger, sigmoid, softmax, make_apply_transformer, read_masks, get_list_of_image_predictions
+from .utils import (
+    get_logger,
+    sigmoid,
+    softmax,
+    make_apply_transformer,
+    read_masks,
+    get_list_of_image_predictions,
+)
 from .metrics import intersection_over_union, intersection_over_union_thresholds
 from .postprocessing import crop_image, resize_image, binarize
 
 logger = get_logger()
 
-Y_COLUMN = 'file_path_mask'
+Y_COLUMN = "file_path_mask"
 ORIGINAL_SIZE = (101, 101)
 THRESHOLD = 0.5
 
@@ -69,8 +76,9 @@ class Callback:
 
     def get_validation_loss(self):
         if self.epoch_id not in self.transformer.validation_loss.keys():
-            self.transformer.validation_loss[self.epoch_id] = score_model(self.model, self.loss_function,
-                                                                          self.validation_datagen)
+            self.transformer.validation_loss[self.epoch_id] = score_model(
+                self.model, self.loss_function, self.validation_datagen
+            )
         return self.transformer.validation_loss[self.epoch_id]
 
 
@@ -107,7 +115,9 @@ class CallbackList:
             callback.on_epoch_end(*args, **kwargs)
 
     def training_break(self, *args, **kwargs):
-        callback_out = [callback.training_break(*args, **kwargs) for callback in self.callbacks]
+        callback_out = [
+            callback.training_break(*args, **kwargs) for callback in self.callbacks
+        ]
         return any(callback_out)
 
     def on_batch_begin(self, *args, **kwargs):
@@ -142,7 +152,11 @@ class TrainingMonitor(Callback):
             epoch_avg_loss = averager.value
             averager.reset()
             if self.epoch_every and ((self.epoch_id % self.epoch_every) == 0):
-                logger.info('epoch {0} {1}:     {2:.5f}'.format(self.epoch_id, name, epoch_avg_loss))
+                logger.info(
+                    "epoch {0} {1}:     {2:.5f}".format(
+                        self.epoch_id, name, epoch_avg_loss
+                    )
+                )
         self.epoch_id += 1
 
     def on_batch_end(self, metrics, *args, **kwargs):
@@ -155,7 +169,11 @@ class TrainingMonitor(Callback):
                 self.epoch_loss_averagers[name].send(loss)
 
             if self.batch_every and ((self.batch_id % self.batch_every) == 0):
-                logger.info('epoch {0} batch {1} {2}:     {3:.5f}'.format(self.epoch_id, self.batch_id, name, loss))
+                logger.info(
+                    "epoch {0} batch {1} {2}:     {3:.5f}".format(
+                        self.epoch_id, self.batch_id, name, loss
+                    )
+                )
         self.batch_id += 1
 
 
@@ -182,20 +200,33 @@ class ExponentialLRScheduler(Callback):
     def on_train_begin(self, *args, **kwargs):
         self.epoch_id = 0
         self.batch_id = 0
-        logger.info('initial lr: {0}'.format(self.optimizer.state_dict()['param_groups'][0]['initial_lr']))
+        logger.info(
+            "initial lr: {0}".format(
+                self.optimizer.state_dict()["param_groups"][0]["initial_lr"]
+            )
+        )
 
     def on_epoch_end(self, *args, **kwargs):
         if self.epoch_every and (((self.epoch_id + 1) % self.epoch_every) == 0):
             self.lr_scheduler.step()
-            logger.info('epoch {0} current lr: {1}'.format(self.epoch_id + 1,
-                                                           self.optimizer.state_dict()['param_groups'][0]['lr']))
+            logger.info(
+                "epoch {0} current lr: {1}".format(
+                    self.epoch_id + 1,
+                    self.optimizer.state_dict()["param_groups"][0]["lr"],
+                )
+            )
         self.epoch_id += 1
 
     def on_batch_end(self, *args, **kwargs):
         if self.batch_every and ((self.batch_id % self.batch_every) == 0):
             self.lr_scheduler.step()
-            logger.info('epoch {0} batch {1} current lr: {2}'.format(
-                self.epoch_id + 1, self.batch_id + 1, self.optimizer.state_dict()['param_groups'][0]['lr']))
+            logger.info(
+                "epoch {0} batch {1} current lr: {2}".format(
+                    self.epoch_id + 1,
+                    self.batch_id + 1,
+                    self.optimizer.state_dict()["param_groups"][0]["lr"],
+                )
+            )
         self.batch_id += 1
 
 
@@ -218,21 +249,25 @@ class ExperimentTiming(Callback):
     def on_train_begin(self, *args, **kwargs):
         self.epoch_id = 0
         self.batch_id = 0
-        logger.info('starting training...')
+        logger.info("starting training...")
 
     def on_train_end(self, *args, **kwargs):
-        logger.info('training finished')
+        logger.info("training finished")
 
     def on_epoch_begin(self, *args, **kwargs):
         if self.epoch_id > 0:
             epoch_time = datetime.now() - self.epoch_start
             if self.epoch_every:
                 if (self.epoch_id % self.epoch_every) == 0:
-                    logger.info('epoch {0} time {1}'.format(self.epoch_id - 1, str(epoch_time)[:-7]))
+                    logger.info(
+                        "epoch {0} time {1}".format(
+                            self.epoch_id - 1, str(epoch_time)[:-7]
+                        )
+                    )
         self.epoch_start = datetime.now()
         self.current_sum = timedelta()
         self.current_mean = timedelta()
-        logger.info('epoch {0} ...'.format(self.epoch_id))
+        logger.info("epoch {0} ...".format(self.epoch_id))
 
     def on_batch_begin(self, *args, **kwargs):
         if self.batch_id > 0:
@@ -241,10 +276,16 @@ class ExperimentTiming(Callback):
             self.current_mean = self.current_sum / self.batch_id
         if self.batch_every:
             if self.batch_id > 0 and (((self.batch_id - 1) % self.batch_every) == 0):
-                logger.info('epoch {0} average batch time: {1}'.format(self.epoch_id, str(self.current_mean)[:-5]))
+                logger.info(
+                    "epoch {0} average batch time: {1}".format(
+                        self.epoch_id, str(self.current_mean)[:-5]
+                    )
+                )
         if self.batch_every:
             if self.batch_id == 0 or self.batch_id % self.batch_every == 0:
-                logger.info('epoch {0} batch {1} ...'.format(self.epoch_id, self.batch_id))
+                logger.info(
+                    "epoch {0} batch {1} ...".format(self.epoch_id, self.batch_id)
+                )
         self.batch_start = datetime.now()
 
 
@@ -272,7 +313,11 @@ class NeptuneMonitor(Callback):
                 self.epoch_loss_averagers[name] = Averager()
                 self.epoch_loss_averagers[name].send(loss)
 
-            self.ctx.channel_send('{} batch {} loss'.format(self.model_name, name), x=self.batch_id, y=loss)
+            self.ctx.channel_send(
+                "{} batch {} loss".format(self.model_name, name),
+                x=self.batch_id,
+                y=loss,
+            )
 
         self.batch_id += 1
 
@@ -284,14 +329,22 @@ class NeptuneMonitor(Callback):
         for name, averager in self.epoch_loss_averagers.items():
             epoch_avg_loss = averager.value
             averager.reset()
-            self.ctx.channel_send('{} epoch {} loss'.format(self.model_name, name), x=self.epoch_id, y=epoch_avg_loss)
+            self.ctx.channel_send(
+                "{} epoch {} loss".format(self.model_name, name),
+                x=self.epoch_id,
+                y=epoch_avg_loss,
+            )
 
         self.model.eval()
         val_loss = self.get_validation_loss()
         self.model.train()
         for name, loss in val_loss.items():
             loss = loss.data.cpu().numpy()[0]
-            self.ctx.channel_send('{} epoch_val {} loss'.format(self.model_name, name), x=self.epoch_id, y=loss)
+            self.ctx.channel_send(
+                "{} epoch_val {} loss".format(self.model_name, name),
+                x=self.epoch_id,
+                y=loss,
+            )
 
 
 class ValidationMonitor(Callback):
@@ -313,7 +366,9 @@ class ValidationMonitor(Callback):
         self.y_true = None
         self.activation_func = None
 
-    def set_params(self, transformer, validation_datagen, meta_valid=None, *args, **kwargs):
+    def set_params(
+        self, transformer, validation_datagen, meta_valid=None, *args, **kwargs
+    ):
         self.model = transformer.model
         self.optimizer = transformer.optimizer
         self.loss_function = transformer.loss_function
@@ -334,24 +389,33 @@ class ValidationMonitor(Callback):
             self.model.train()
             for name, loss in val_loss.items():
                 loss = loss.data.cpu().numpy()[0]
-                logger.info('epoch {0} validation {1}:     {2:.5f}'.format(self.epoch_id, name, loss))
+                logger.info(
+                    "epoch {0} validation {1}:     {2:.5f}".format(
+                        self.epoch_id, name, loss
+                    )
+                )
         self.epoch_id += 1
 
     def _get_validation_loss(self):
         output, epoch_loss = self._transform()
         y_pred = self._generate_prediction(output)
 
-        logger.info('Calculating IOU and IOUT Scores')
+        logger.info("Calculating IOU and IOUT Scores")
         iou_score = intersection_over_union(self.y_true, y_pred)
         iout_score = intersection_over_union_thresholds(self.y_true, y_pred)
-        logger.info('IOU score on validation is {}'.format(iou_score))
-        logger.info('IOUT score on validation is {}'.format(iout_score))
+        logger.info("IOU score on validation is {}".format(iou_score))
+        logger.info("IOUT score on validation is {}".format(iout_score))
 
         if not self.transformer.validation_loss:
             self.transformer.validation_loss = {}
-        self.transformer.validation_loss.setdefault(self.epoch_id, {'sum': epoch_loss,
-                                                                    'iou': Variable(torch.Tensor([iou_score])),
-                                                                    'iout': Variable(torch.Tensor([iout_score]))})
+        self.transformer.validation_loss.setdefault(
+            self.epoch_id,
+            {
+                "sum": epoch_loss,
+                "iou": Variable(torch.Tensor([iou_score])),
+                "iout": Variable(torch.Tensor([iout_score])),
+            },
+        )
         return self.transformer.validation_loss[self.epoch_id]
 
     def _transform(self):
@@ -376,13 +440,18 @@ class ValidationMonitor(Callback):
 
             outputs_batch = self.model(X)
             if len(self.output_names) == 1:
-                for (name, loss_function_one, weight), target in zip(self.loss_function, targets_var):
+                for (name, loss_function_one, weight), target in zip(
+                    self.loss_function, targets_var
+                ):
                     loss_sum = loss_function_one(outputs_batch, target) * weight
-                outputs.setdefault(self.output_names[0], []).append(outputs_batch.data.cpu().numpy())
+                outputs.setdefault(self.output_names[0], []).append(
+                    outputs_batch.data.cpu().numpy()
+                )
             else:
                 batch_losses = []
-                for (name, loss_function_one, weight), output, target in zip(self.loss_function, outputs_batch,
-                                                                             targets_var):
+                for (name, loss_function_one, weight), output, target in zip(
+                    self.loss_function, outputs_batch, targets_var
+                ):
                     loss = loss_function_one(output, target) * weight
                     batch_losses.append(loss)
                     partial_batch_losses.setdefault(name, []).append(loss)
@@ -394,33 +463,37 @@ class ValidationMonitor(Callback):
                 break
         self.model.train()
         average_losses = sum(partial_batch_losses) / steps
-        outputs = {'{}_prediction'.format(name): get_list_of_image_predictions(outputs_) for name, outputs_ in
-                   outputs.items()}
+        outputs = {
+            "{}_prediction".format(name): get_list_of_image_predictions(outputs_)
+            for name, outputs_ in outputs.items()
+        }
         for name, prediction in outputs.items():
-            if self.activation_func == 'softmax':
-                outputs[name] = [softmax(single_prediction, axis=0) for single_prediction in prediction]
-            elif self.activation_func == 'sigmoid':
+            if self.activation_func == "softmax":
+                outputs[name] = [
+                    softmax(single_prediction, axis=0)
+                    for single_prediction in prediction
+                ]
+            elif self.activation_func == "sigmoid":
                 outputs[name] = [sigmoid(np.squeeze(mask)) for mask in prediction]
             else:
-                raise Exception('Only softmax and sigmoid activations are allowed')
+                raise Exception("Only softmax and sigmoid activations are allowed")
 
         return outputs, average_losses
 
     def _generate_prediction(self, outputs):
-        data = {'callback_input': {'meta': self.meta_valid,
-                                   'meta_valid': None,
-                                   },
-                'unet_output': {**outputs}
-                }
+        data = {
+            "callback_input": {"meta": self.meta_valid, "meta_valid": None},
+            "unet_output": {**outputs},
+        }
         with TemporaryDirectory() as cache_dirpath:
             pipeline = self.validation_pipeline(cache_dirpath, self.loader_mode)
             output = pipeline.transform(data)
-        y_pred = output['y_pred']
+        y_pred = output["y_pred"]
         return y_pred
 
 
 class ModelCheckpoint(Callback):
-    def __init__(self, filepath, metric_name='sum', epoch_every=1, minimize=True):
+    def __init__(self, filepath, metric_name="sum", epoch_every=1, minimize=True):
         self.filepath = filepath
         self.minimize = minimize
         self.best_score = None
@@ -449,17 +522,22 @@ class ModelCheckpoint(Callback):
             if self.best_score is None:
                 self.best_score = loss_sum
 
-            if (self.minimize and loss_sum < self.best_score) or (not self.minimize and loss_sum > self.best_score) or (
-                    self.epoch_id == 0):
+            if (
+                (self.minimize and loss_sum < self.best_score)
+                or (not self.minimize and loss_sum > self.best_score)
+                or (self.epoch_id == 0)
+            ):
                 self.best_score = loss_sum
                 persist_torch_model(self.model, self.filepath)
-                logger.info('epoch {0} model saved to {1}'.format(self.epoch_id, self.filepath))
+                logger.info(
+                    "epoch {0} model saved to {1}".format(self.epoch_id, self.filepath)
+                )
 
         self.epoch_id += 1
 
 
 class EarlyStopping(Callback):
-    def __init__(self, metric_name='sum', patience=1000, minimize=True):
+    def __init__(self, metric_name="sum", patience=1000, minimize=True):
         super().__init__()
         self.patience = patience
         self.minimize = minimize
@@ -482,7 +560,9 @@ class EarlyStopping(Callback):
         if not self.best_score:
             self.best_score = loss_sum
 
-        if (self.minimize and loss_sum < self.best_score) or (not self.minimize and loss_sum > self.best_score):
+        if (self.minimize and loss_sum < self.best_score) or (
+            not self.minimize and loss_sum > self.best_score
+        ):
             self.best_score = loss_sum
             self.epoch_since_best = 0
         else:
@@ -494,37 +574,41 @@ class EarlyStopping(Callback):
 
 
 def postprocessing_pipeline_simplified(cache_dirpath, loader_mode):
-    if loader_mode == 'resize_and_pad':
+    if loader_mode == "resize_and_pad":
         size_adjustment_function = partial(crop_image, target_size=ORIGINAL_SIZE)
-    elif loader_mode == 'resize':
+    elif loader_mode == "resize":
         size_adjustment_function = partial(resize_image, target_size=ORIGINAL_SIZE)
     else:
         raise NotImplementedError
 
-    mask_resize = Step(name='mask_resize',
-                       transformer=make_apply_transformer(size_adjustment_function,
-                                                          output_name='resized_images',
-                                                          apply_on=['images']),
-                       input_data=['unet_output'],
-                       adapter=Adapter({'images': E('unet_output', 'mask_prediction'),
-                                        }),
-                       experiment_directory=cache_dirpath)
+    mask_resize = Step(
+        name="mask_resize",
+        transformer=make_apply_transformer(
+            size_adjustment_function, output_name="resized_images", apply_on=["images"]
+        ),
+        input_data=["unet_output"],
+        adapter=Adapter({"images": E("unet_output", "mask_prediction")}),
+        experiment_directory=cache_dirpath,
+    )
 
-    binarizer = Step(name='binarizer',
-                     transformer=make_apply_transformer(
-                         partial(binarize, threshold=THRESHOLD),
-                         output_name='binarized_images',
-                         apply_on=['images']),
-                     input_steps=[mask_resize],
-                     adapter=Adapter({'images': E(mask_resize.name, 'resized_images'),
-                                      }),
-                     experiment_directory=cache_dirpath)
+    binarizer = Step(
+        name="binarizer",
+        transformer=make_apply_transformer(
+            partial(binarize, threshold=THRESHOLD),
+            output_name="binarized_images",
+            apply_on=["images"],
+        ),
+        input_steps=[mask_resize],
+        adapter=Adapter({"images": E(mask_resize.name, "resized_images")}),
+        experiment_directory=cache_dirpath,
+    )
 
-    output = Step(name='output',
-                  transformer=IdentityOperation(),
-                  input_steps=[binarizer],
-                  adapter=Adapter({'y_pred': E(binarizer.name, 'binarized_images'),
-                                   }),
-                  experiment_directory=cache_dirpath)
+    output = Step(
+        name="output",
+        transformer=IdentityOperation(),
+        input_steps=[binarizer],
+        adapter=Adapter({"y_pred": E(binarizer.name, "binarized_images")}),
+        experiment_directory=cache_dirpath,
+    )
 
     return output

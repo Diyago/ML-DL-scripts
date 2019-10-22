@@ -5,7 +5,7 @@
 # multi cased: bert-serving-start -model_dir /bert-as-service/multi_cased_L-12_H-768_A-12/ -num_worker=4
 # chinese: bert-serving-start -model_dir /bert-as-service/chinese_L-12_H-768_A-12/ -num_worker=4
 
-# launch bert (valilenk): 
+# launch bert (valilenk):
 # english cased: bert-serving-start -model_dir /media/airvetra/1tb/valilenk/nlp/bert-as-service/cased_L-24_H-1024_A-16/ -num_worker=2
 # multi cased: bert-serving-start -model_dir /media/airvetra/1tb/valilenk/nlp/bert-as-service/multi_cased_L-12_H-768_A-12/ -num_worker=2
 # chinese: bert-serving-start -model_dir /media/airvetra/1tb/valilenk/nlp/bert-as-service/chinese_L-12_H-768_A-12/ -num_worker=2
@@ -17,10 +17,12 @@ from time import time
 from tqdm import tqdm
 from bert_serving.client import BertClient
 
-data_folder = os.path.dirname(os.getcwd())+'/data'
-train = pd.read_csv(data_folder+'/raw/train.csv')
+data_folder = os.path.dirname(os.getcwd()) + "/data"
+train = pd.read_csv(data_folder + "/raw/train.csv")
 
 bc = BertClient()
+
+
 def gen_encodings(df, column):
     t0 = time()
     _list = list(df.loc[:, column])
@@ -30,15 +32,16 @@ def gen_encodings(df, column):
         if not _list[i].strip():
             _list[i] = _list[i].strip()
         if len(_list[i]) == 0:
-            _list[i] = 'temp'
+            _list[i] = "temp"
     arr = bc.encode(_list)
     temp = pd.DataFrame(arr)
-    temp.columns = [f'{column}_{c}' for c in range(len(arr[0]))]
+    temp.columns = [f"{column}_{c}" for c in range(len(arr[0]))]
     temp = temp.join(df.id)
-    print(f'time: {time() - t0}')
+    print(f"time: {time() - t0}")
     return temp
 
-encoded_train = gen_encodings(train, 'title1_en')
-encoded_train.to_csv('encoded_train1.csv')
-encoded_train = gen_encodings(train, 'title2_en')
-encoded_train.to_csv('encoded_train2.csv')
+
+encoded_train = gen_encodings(train, "title1_en")
+encoded_train.to_csv("encoded_train1.csv")
+encoded_train = gen_encodings(train, "title2_en")
+encoded_train.to_csv("encoded_train2.csv")

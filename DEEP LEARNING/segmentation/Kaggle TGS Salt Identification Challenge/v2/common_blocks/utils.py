@@ -24,7 +24,9 @@ from imgaug import augmenters as iaa
 import imgaug as ia
 import torch
 
-NEPTUNE_CONFIG_PATH = str(pathlib.Path(__file__).resolve().parents[1] / 'configs' / 'neptune.yaml')
+NEPTUNE_CONFIG_PATH = str(
+    pathlib.Path(__file__).resolve().parents[1] / "configs" / "neptune.yaml"
+)
 logger = get_logger()
 
 
@@ -35,10 +37,11 @@ def read_yaml(fallback_file=NEPTUNE_CONFIG_PATH):
 
 
 def init_logger():
-    logger = logging.getLogger('salt-detection')
+    logger = logging.getLogger("salt-detection")
     logger.setLevel(logging.INFO)
-    message_format = logging.Formatter(fmt='%(asctime)s %(name)s >>> %(message)s',
-                                       datefmt='%Y-%m-%d %H-%M-%S')
+    message_format = logging.Formatter(
+        fmt="%(asctime)s %(name)s >>> %(message)s", datefmt="%Y-%m-%d %H-%M-%S"
+    )
 
     # console handler for validation info
     ch_va = logging.StreamHandler(sys.stdout)
@@ -53,16 +56,16 @@ def init_logger():
 
 
 def get_logger():
-    return logging.getLogger('salt-detection')
+    return logging.getLogger("salt-detection")
 
 
 def create_submission(meta, predictions):
     output = []
-    for image_id, mask in zip(meta['id'].values, predictions):
-        rle_encoded = ' '.join(str(rle) for rle in run_length_encoding(mask))
+    for image_id, mask in zip(meta["id"].values, predictions):
+        rle_encoded = " ".join(str(rle) for rle in run_length_encoding(mask))
         output.append([image_id, rle_encoded])
 
-    submission = pd.DataFrame(output, columns=['id', 'rle_mask']).astype(str)
+    submission = pd.DataFrame(output, columns=["id", "rle_mask"]).astype(str)
     return submission
 
 
@@ -74,7 +77,9 @@ def read_masks(masks_filepaths):
     masks = []
     for mask_filepath in tqdm(masks_filepaths):
         mask = Image.open(mask_filepath)
-        mask = np.asarray(mask.convert('L').point(lambda x: 0 if x < 128 else 1)).astype(np.uint8)
+        mask = np.asarray(
+            mask.convert("L").point(lambda x: 0 if x < 128 else 1)
+        ).astype(np.uint8)
         masks.append(mask)
     return masks
 
@@ -94,7 +99,7 @@ def run_length_encoding(x):
     rle = []
     prev = -2
     for b in bs:
-        if (b > prev + 1):
+        if b > prev + 1:
             rle.extend((b + 1, 0))
         rle[-1] += 1
         prev = b
@@ -125,34 +130,34 @@ def generate_metadata(train_images_dir, test_images_dir, depths_filepath):
     depths = pd.read_csv(depths_filepath)
 
     metadata = {}
-    for filename in tqdm(os.listdir(os.path.join(train_images_dir, 'images'))):
-        image_filepath = os.path.join(train_images_dir, 'images', filename)
-        mask_filepath = os.path.join(train_images_dir, 'masks', filename)
-        image_id = filename.split('.')[0]
-        depth = depths[depths['id'] == image_id]['z'].values[0]
+    for filename in tqdm(os.listdir(os.path.join(train_images_dir, "images"))):
+        image_filepath = os.path.join(train_images_dir, "images", filename)
+        mask_filepath = os.path.join(train_images_dir, "masks", filename)
+        image_id = filename.split(".")[0]
+        depth = depths[depths["id"] == image_id]["z"].values[0]
 
-        metadata.setdefault('file_path_image', []).append(image_filepath)
-        metadata.setdefault('file_path_mask', []).append(mask_filepath)
-        metadata.setdefault('is_train', []).append(1)
-        metadata.setdefault('id', []).append(image_id)
-        metadata.setdefault('z', []).append(depth)
+        metadata.setdefault("file_path_image", []).append(image_filepath)
+        metadata.setdefault("file_path_mask", []).append(mask_filepath)
+        metadata.setdefault("is_train", []).append(1)
+        metadata.setdefault("id", []).append(image_id)
+        metadata.setdefault("z", []).append(depth)
 
-    for filename in tqdm(os.listdir(os.path.join(test_images_dir, 'images'))):
-        image_filepath = os.path.join(test_images_dir, 'images', filename)
-        image_id = filename.split('.')[0]
-        depth = depths[depths['id'] == image_id]['z'].values[0]
+    for filename in tqdm(os.listdir(os.path.join(test_images_dir, "images"))):
+        image_filepath = os.path.join(test_images_dir, "images", filename)
+        image_id = filename.split(".")[0]
+        depth = depths[depths["id"] == image_id]["z"].values[0]
 
-        metadata.setdefault('file_path_image', []).append(image_filepath)
-        metadata.setdefault('file_path_mask', []).append(None)
-        metadata.setdefault('is_train', []).append(0)
-        metadata.setdefault('id', []).append(image_id)
-        metadata.setdefault('z', []).append(depth)
+        metadata.setdefault("file_path_image", []).append(image_filepath)
+        metadata.setdefault("file_path_mask", []).append(None)
+        metadata.setdefault("is_train", []).append(0)
+        metadata.setdefault("id", []).append(image_id)
+        metadata.setdefault("z", []).append(depth)
 
     return pd.DataFrame(metadata)
 
 
 def sigmoid(x):
-    return 1. / (1 + np.exp(-x))
+    return 1.0 / (1 + np.exp(-x))
 
 
 def softmax(X, theta=1.0, axis=None):
@@ -193,7 +198,8 @@ def softmax(X, theta=1.0, axis=None):
     p = y / ax_sum
 
     # flatten if X was 1D
-    if len(X.shape) == 1: p = p.flatten()
+    if len(X.shape) == 1:
+        p = p.flatten()
 
     return p
 
@@ -214,7 +220,7 @@ def to_pil(*images):
         return images
 
 
-def make_apply_transformer(func, output_name='output', apply_on=None):
+def make_apply_transformer(func, output_name="output", apply_on=None):
     class StaticApplyTransformer(BaseTransformer):
         def transform(self, *args, **kwargs):
             self.check_input(*args, **kwargs)
@@ -232,12 +238,12 @@ def make_apply_transformer(func, output_name='output', apply_on=None):
         @staticmethod
         def check_input(*args, **kwargs):
             if len(args) and len(kwargs) == 0:
-                raise Exception('Input must not be empty')
+                raise Exception("Input must not be empty")
 
             arg_length = None
             for arg in chain(args, kwargs.values()):
                 if not isinstance(arg, Iterable):
-                    raise Exception('All inputs must be iterable')
+                    raise Exception("All inputs must be iterable")
                 arg_length_loc = None
                 try:
                     arg_length_loc = len(arg)
@@ -247,7 +253,7 @@ def make_apply_transformer(func, output_name='output', apply_on=None):
                     if arg_length is None:
                         arg_length = arg_length_loc
                     elif arg_length_loc != arg_length:
-                        raise Exception('All inputs must be the same length')
+                        raise Exception("All inputs must be the same length")
 
         @staticmethod
         def get_arg_length(*args, **kwargs):
@@ -278,8 +284,8 @@ def get_segmentations(labeled):
     segmentations = []
     for i in range(1, nr_true + 1):
         msk = labeled == i
-        segmentation = rle_from_binary(msk.astype('uint8'))
-        segmentation['counts'] = segmentation['counts'].decode("UTF-8")
+        segmentation = rle_from_binary(msk.astype("uint8"))
+        segmentation["counts"] = segmentation["counts"].decode("UTF-8")
         segmentations.append(segmentation)
     return segmentations
 
@@ -361,7 +367,7 @@ class KFoldBySortedValue(BaseCrossValidator):
         indices = [idx for idx, val in sorted_idx_vals]
 
         for split_start in range(self.n_splits):
-            split_indeces = indices[split_start::self.n_splits]
+            split_indeces = indices[split_start :: self.n_splits]
             yield split_indeces
 
     def get_n_splits(self, X=None, y=None, groups=None):
@@ -378,7 +384,7 @@ def plot_list(images=[], labels=[]):
         axs[i].set_xticks([])
         axs[i].set_yticks([])
     for j, label in enumerate(labels):
-        axs[n_img + j].imshow(label, cmap='nipy_spectral')
+        axs[n_img + j].imshow(label, cmap="nipy_spectral")
         axs[n_img + j].set_xticks([])
         axs[n_img + j].set_yticks([])
     plt.show()
@@ -392,74 +398,100 @@ def clean_object_from_memory(obj):
 
 
 class FineTuneStep(Step):
-    def __init__(self,
-                 name,
-                 transformer,
-                 experiment_directory,
-                 input_data=None,
-                 input_steps=None,
-                 adapter=None,
-                 is_trainable=False,
-                 cache_output=False,
-                 persist_output=False,
-                 load_persisted_output=False,
-                 force_fitting=False,
-                 fine_tuning=False,
-                 persist_upstream_pipeline_structure=False):
-        super().__init__(name,
-                         transformer,
-                         experiment_directory,
-                         input_data=input_data,
-                         input_steps=input_steps,
-                         adapter=adapter,
-                         is_trainable=is_trainable,
-                         cache_output=cache_output,
-                         persist_output=persist_output,
-                         load_persisted_output=load_persisted_output,
-                         force_fitting=force_fitting,
-                         persist_upstream_pipeline_structure=persist_upstream_pipeline_structure)
+    def __init__(
+        self,
+        name,
+        transformer,
+        experiment_directory,
+        input_data=None,
+        input_steps=None,
+        adapter=None,
+        is_trainable=False,
+        cache_output=False,
+        persist_output=False,
+        load_persisted_output=False,
+        force_fitting=False,
+        fine_tuning=False,
+        persist_upstream_pipeline_structure=False,
+    ):
+        super().__init__(
+            name,
+            transformer,
+            experiment_directory,
+            input_data=input_data,
+            input_steps=input_steps,
+            adapter=adapter,
+            is_trainable=is_trainable,
+            cache_output=cache_output,
+            persist_output=persist_output,
+            load_persisted_output=load_persisted_output,
+            force_fitting=force_fitting,
+            persist_upstream_pipeline_structure=persist_upstream_pipeline_structure,
+        )
         self.fine_tuning = fine_tuning
 
     def _cached_fit_transform(self, step_inputs):
         if self.is_trainable:
             if self.transformer_is_cached:
                 if self.force_fitting and self.fine_tuning:
-                    raise ValueError('only one of force_fitting or fine_tuning can be True')
+                    raise ValueError(
+                        "only one of force_fitting or fine_tuning can be True"
+                    )
                 elif self.force_fitting:
-                    logger.info('Step {}, fitting and transforming...'.format(self.name))
+                    logger.info(
+                        "Step {}, fitting and transforming...".format(self.name)
+                    )
                     step_output_data = self.transformer.fit_transform(**step_inputs)
-                    logger.info('Step {}, persisting transformer to the {}'
-                                .format(self.name, self.exp_dir_transformers_step))
+                    logger.info(
+                        "Step {}, persisting transformer to the {}".format(
+                            self.name, self.exp_dir_transformers_step
+                        )
+                    )
                     self.transformer.persist(self.exp_dir_transformers_step)
                 elif self.fine_tuning:
-                    logger.info('Step {}, loading transformer from the {}'
-                                .format(self.name, self.exp_dir_transformers_step))
+                    logger.info(
+                        "Step {}, loading transformer from the {}".format(
+                            self.name, self.exp_dir_transformers_step
+                        )
+                    )
                     self.transformer.load(self.exp_dir_transformers_step)
-                    logger.info('Step {}, transforming...'.format(self.name))
+                    logger.info("Step {}, transforming...".format(self.name))
                     step_output_data = self.transformer.fit_transform(**step_inputs)
                     self.transformer.persist(self.exp_dir_transformers_step)
                 else:
-                    logger.info('Step {}, loading transformer from the {}'
-                                .format(self.name, self.exp_dir_transformers_step))
+                    logger.info(
+                        "Step {}, loading transformer from the {}".format(
+                            self.name, self.exp_dir_transformers_step
+                        )
+                    )
                     self.transformer.load(self.exp_dir_transformers_step)
-                    logger.info('Step {}, transforming...'.format(self.name))
+                    logger.info("Step {}, transforming...".format(self.name))
                     step_output_data = self.transformer.transform(**step_inputs)
             else:
-                logger.info('Step {}, fitting and transforming...'.format(self.name))
+                logger.info("Step {}, fitting and transforming...".format(self.name))
                 step_output_data = self.transformer.fit_transform(**step_inputs)
-                logger.info('Step {}, persisting transformer to the {}'
-                            .format(self.name, self.exp_dir_transformers_step))
+                logger.info(
+                    "Step {}, persisting transformer to the {}".format(
+                        self.name, self.exp_dir_transformers_step
+                    )
+                )
                 self.transformer.persist(self.exp_dir_transformers_step)
         else:
-            logger.info('Step {}, transforming...'.format(self.name))
+            logger.info("Step {}, transforming...".format(self.name))
             step_output_data = self.transformer.transform(**step_inputs)
 
         if self.cache_output:
-            logger.info('Step {}, caching output to the {}'
-                        .format(self.name, self.exp_dir_cache_step))
+            logger.info(
+                "Step {}, caching output to the {}".format(
+                    self.name, self.exp_dir_cache_step
+                )
+            )
             self._persist_output(step_output_data, self.exp_dir_cache_step)
         if self.persist_output:
-            logger.info('Step {}, persisting output to the {}'
-                        .format(self.name, self.exp_dir_outputs_step))
+            logger.info(
+                "Step {}, persisting output to the {}".format(
+                    self.name, self.exp_dir_outputs_step
+                )
+            )
             self._persist_output(step_output_data, self.exp_dir_outputs_step)
         return step_output_data

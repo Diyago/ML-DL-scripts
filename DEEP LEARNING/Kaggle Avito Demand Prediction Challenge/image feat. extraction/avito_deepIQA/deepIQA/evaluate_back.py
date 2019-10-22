@@ -11,15 +11,22 @@ from sklearn.feature_extraction.image import extract_patches
 from deepIQA.fr_model import FRModel
 from deepIQA.nr_model import Model
 
-parser = argparse.ArgumentParser(description='evaluate.py')
-parser.add_argument('INPUT', help='path to input image')
-parser.add_argument('REF', default="", nargs="?", help='path to reference image, if omitted NR IQA is assumed')
-parser.add_argument('--model', '-m', default='',
-                    help='path to the trained model')
-parser.add_argument('--top', choices=('patchwise', 'weighted'),
-                    default='weighted', help='top layer and loss definition')
-parser.add_argument('--gpu', '-g', default=0, type=int,
-                    help='GPU ID')
+parser = argparse.ArgumentParser(description="evaluate.py")
+parser.add_argument("INPUT", help="path to input image")
+parser.add_argument(
+    "REF",
+    default="",
+    nargs="?",
+    help="path to reference image, if omitted NR IQA is assumed",
+)
+parser.add_argument("--model", "-m", default="", help="path to the trained model")
+parser.add_argument(
+    "--top",
+    choices=("patchwise", "weighted"),
+    default="weighted",
+    help="top layer and loss definition",
+)
+parser.add_argument("--gpu", "-g", default=0, type=int, help="GPU ID")
 
 args = parser.parse_args()
 
@@ -54,13 +61,15 @@ weights = []
 batchsize = min(2000, X.shape[0])
 t = xp.zeros((1, 1), np.float32)
 for i in six.moves.range(0, X.shape[0], batchsize):
-    X_batch = X[i:i + batchsize]
+    X_batch = X[i : i + batchsize]
     X_batch = xp.array(X_batch.astype(np.float32))
 
     if FR:
-        X_ref_batch = X_ref[i:i + batchsize]
+        X_ref_batch = X_ref[i : i + batchsize]
         X_ref_batch = xp.array(X_ref_batch.astype(np.float32))
-        model.forward(X_batch, X_ref_batch, t, False, n_patches_per_image=X_batch.shape[0])
+        model.forward(
+            X_batch, X_ref_batch, t, False, n_patches_per_image=X_batch.shape[0]
+        )
     else:
         model.forward(X_batch, t, False, X_batch.shape[0])
 
@@ -73,10 +82,10 @@ weights = np.concatenate(weights)
 print("%f" % (np.sum(y * weights) / np.sum(weights)))
 
 
-'''
+"""
 --model
 models/nr_tid_patchwise.model
 --top
 patchwise
 /home/alex/work/py/avito/input/train_jpg/0a0a5a3f22320e0508139273d23f390ca837aef252036034ed640fb939529bd9.jpg
-'''
+"""

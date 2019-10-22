@@ -14,12 +14,20 @@ class DiceLoss(nn.Module):
 
     def forward(self, output, target):
         return 1 - (2 * torch.sum(output * target) + self.smooth) / (
-                torch.sum(output) + torch.sum(target) + self.smooth + self.eps)
+            torch.sum(output) + torch.sum(target) + self.smooth + self.eps
+        )
 
 
-def mixed_dice_bce_loss(output, target, dice_weight=0.2, dice_loss=None,
-                        bce_weight=0.9, bce_loss=None,
-                        smooth=0, dice_activation='sigmoid'):
+def mixed_dice_bce_loss(
+    output,
+    target,
+    dice_weight=0.2,
+    dice_loss=None,
+    bce_weight=0.9,
+    bce_loss=None,
+    smooth=0,
+    dice_activation="sigmoid",
+):
 
     num_classes = output.size(1)
     target = target[:, :num_classes, :, :].long()
@@ -27,10 +35,12 @@ def mixed_dice_bce_loss(output, target, dice_weight=0.2, dice_loss=None,
         bce_loss = nn.BCEWithLogitsLoss()
     if dice_loss is None:
         dice_loss = multiclass_dice_loss
-    return dice_weight * dice_loss(output, target, smooth, dice_activation) + bce_weight * bce_loss(output, target)
+    return dice_weight * dice_loss(
+        output, target, smooth, dice_activation
+    ) + bce_weight * bce_loss(output, target)
 
 
-def multiclass_dice_loss(output, target, smooth=0, activation='softmax'):
+def multiclass_dice_loss(output, target, smooth=0, activation="softmax"):
     """Calculate Dice Loss for multiple class output.
 
     Args:
@@ -43,12 +53,12 @@ def multiclass_dice_loss(output, target, smooth=0, activation='softmax'):
         torch.Tensor: Loss value.
 
     """
-    if activation == 'softmax':
+    if activation == "softmax":
         activation_nn = torch.nn.Softmax2d()
-    elif activation == 'sigmoid':
+    elif activation == "sigmoid":
         activation_nn = torch.nn.Sigmoid()
     else:
-        raise NotImplementedError('only sigmoid and softmax are implemented')
+        raise NotImplementedError("only sigmoid and softmax are implemented")
 
     loss = 0
     dice = DiceLoss(smooth=smooth)
@@ -58,6 +68,7 @@ def multiclass_dice_loss(output, target, smooth=0, activation='softmax'):
     for class_nr in range(num_classes):
         loss += dice(output[:, class_nr, :, :], target[:, class_nr, :, :])
     return loss / num_classes
+
 
 def where(cond, x_1, x_2):
     cond = cond.long()

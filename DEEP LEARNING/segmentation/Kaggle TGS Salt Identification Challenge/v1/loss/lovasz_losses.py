@@ -9,10 +9,11 @@ import torch
 from torch.autograd import Variable
 import torch.nn.functional as F
 import numpy as np
+
 try:
-    from itertools import  ifilterfalse
-except ImportError: # py3k
-    from itertools import  filterfalse
+    from itertools import ifilterfalse
+except ImportError:  # py3k
+    from itertools import filterfalse
 
 
 def lovasz_grad(gt_sorted):
@@ -24,13 +25,13 @@ def lovasz_grad(gt_sorted):
     gts = gt_sorted.sum()
     intersection = gts - gt_sorted.float().cumsum(0)
     union = gts + (1 - gt_sorted).float().cumsum(0)
-    jaccard = 1. - intersection / union
-    if p > 1: # cover 1-pixel case
+    jaccard = 1.0 - intersection / union
+    if p > 1:  # cover 1-pixel case
         jaccard[1:p] = jaccard[1:p] - jaccard[0:-1]
     return jaccard
 
 
-def iou_binary(preds, labels, EMPTY=1., ignore=None, per_image=True):
+def iou_binary(preds, labels, EMPTY=1.0, ignore=None, per_image=True):
     """
     IoU for foreground class
     binary: 1 foreground, 0 background
@@ -46,11 +47,11 @@ def iou_binary(preds, labels, EMPTY=1., ignore=None, per_image=True):
         else:
             iou = float(intersection) / union
         ious.append(iou)
-    iou = mean(ious)    # mean accross images if per_image
+    iou = mean(ious)  # mean accross images if per_image
     return 100 * iou
 
 
-def iou(preds, labels, C, EMPTY=1., ignore=None, per_image=False):
+def iou(preds, labels, C, EMPTY=1.0, ignore=None, per_image=False):
     """
     Array of IoU for each (non ignored) class
     """
@@ -58,9 +59,11 @@ def iou(preds, labels, C, EMPTY=1., ignore=None, per_image=False):
         preds, labels = (preds,), (labels,)
     ious = []
     for pred, label in zip(preds, labels):
-        iou = []    
+        iou = []
         for i in range(C):
-            if i != ignore: # The ignored label is sometimes among predicted classes (ENet - CityScapes)
+            if (
+                i != ignore
+            ):  # The ignored label is sometimes among predicted classes (ENet - CityScapes)
                 intersection = ((label == i) & (pred == i)).sum()
                 union = ((label == i) | ((pred == i) & (label != ignore))).sum()
                 if not union:
@@ -68,7 +71,7 @@ def iou(preds, labels, C, EMPTY=1., ignore=None, per_image=False):
                 else:
                     iou.append(float(intersection) / union)
         ious.append(iou)
-    ious = map(mean, zip(*ious)) # mean accross images if per_image
+    ious = map(mean, zip(*ious))  # mean accross images if per_image
     return 100 * np.array(ious)
 
 
@@ -84,8 +87,12 @@ def lovasz_hinge(logits, labels, per_image=True, ignore=None):
       ignore: void class id
     """
     if per_image:
-        loss = mean(lovasz_hinge_flat(*flatten_binary_scores(log.unsqueeze(0), lab.unsqueeze(0), ignore))
-                          for log, lab in zip(logits, labels))
+        loss = mean(
+            lovasz_hinge_flat(
+                *flatten_binary_scores(log.unsqueeze(0), lab.unsqueeze(0), ignore)
+            )
+            for log, lab in zip(logits, labels)
+        )
     else:
         loss = lovasz_hinge_flat(*flatten_binary_scores(logits, labels, ignore))
     return loss
@@ -100,16 +107,16 @@ def lovasz_hinge_flat(logits, labels):
     """
     if len(labels) == 0:
         # only void pixels, the gradients should be 0
-        return logits.sum() * 0.
-    signs = 2. * labels.float() - 1.
-    errors = (1. - logits * signs)
+        return logits.sum() * 0.0
+    signs = 2.0 * labels.float() - 1.0
+    errors = 1.0 - logits * signs
     errors_sorted, perm = torch.sort(errors, dim=0, descending=True)
     perm = perm.data
     gt_sorted = labels[perm]
     grad = lovasz_grad(gt_sorted)
     # loss = torch.dot(F.relu(errors_sorted), grad)
     # print('elu!!!!!!')
-    loss = torch.dot(F.elu(errors_sorted)+1, grad)
+    loss = torch.dot(F.elu(errors_sorted) + 1, grad)
     # loss = torch.dot(F.leaky_relu(errors_sorted)+1, grad)
     return loss
 
@@ -123,7 +130,7 @@ def flatten_binary_scores(scores, labels, ignore=None):
     labels = labels.view(-1)
     if ignore is None:
         return scores, labels
-    valid = (labels != ignore)
+    valid = labels != ignore
     vscores = scores[valid]
     vlabels = labels[valid]
     return vscores, vlabels
@@ -131,11 +138,12 @@ def flatten_binary_scores(scores, labels, ignore=None):
 
 class StableBCELoss(torch.nn.modules.Module):
     def __init__(self):
-         super(StableBCELoss, self).__init__()
+        super(StableBCELoss, self).__init__()
+
     def forward(self, input, target):
-         neg_abs = - input.abs()
-         loss = input.clamp(min=0) - input * target + (1 + neg_abs.exp()).log()
-         return loss.mean()
+        neg_abs = -input.abs()
+        loss = input.clamp(min=0) - input * target + (1 + neg_abs.exp()).log()
+        return loss.mean()
 
 
 def binary_xloss(logits, labels, ignore=None):
@@ -163,10 +171,17 @@ def lovasz_softmax(probas, labels, only_present=False, per_image=False, ignore=N
       ignore: void class labels
     """
     if per_image:
-        loss = mean(lovasz_softmax_flat(*flatten_probas(prob.unsqueeze(0), lab.unsqueeze(0), ignore), only_present=only_present)
-                          for prob, lab in zip(probas, labels))
+        loss = mean(
+            lovasz_softmax_flat(
+                *flatten_probas(prob.unsqueeze(0), lab.unsqueeze(0), ignore),
+                only_present=only_present
+            )
+            for prob, lab in zip(probas, labels)
+        )
     else:
-        loss = lovasz_softmax_flat(*flatten_probas(probas, labels, ignore), only_present=only_present)
+        loss = lovasz_softmax_flat(
+            *flatten_probas(probas, labels, ignore), only_present=only_present
+        )
     return loss
 
 
@@ -180,7 +195,7 @@ def lovasz_softmax_flat(probas, labels, only_present=False):
     C = probas.size(1)
     losses = []
     for c in range(C):
-        fg = (labels == c).float() # foreground for class c
+        fg = (labels == c).float()  # foreground for class c
         if only_present and fg.sum() == 0:
             continue
         errors = (Variable(fg) - probas[:, c]).abs()
@@ -200,10 +215,11 @@ def flatten_probas(probas, labels, ignore=None):
     labels = labels.view(-1)
     if ignore is None:
         return probas, labels
-    valid = (labels != ignore)
+    valid = labels != ignore
     vprobas = probas[valid.nonzero().squeeze()]
     vlabels = labels[valid]
     return vprobas, vlabels
+
 
 def xloss(logits, labels, ignore=None):
     """
@@ -213,6 +229,7 @@ def xloss(logits, labels, ignore=None):
 
 
 # --------------------------- HELPER FUNCTIONS ---------------------------
+
 
 def mean(l, ignore_nan=False, empty=0):
     """
@@ -225,8 +242,8 @@ def mean(l, ignore_nan=False, empty=0):
         n = 1
         acc = next(l)
     except StopIteration:
-        if empty == 'raise':
-            raise ValueError('Empty mean')
+        if empty == "raise":
+            raise ValueError("Empty mean")
         return empty
     for n, v in enumerate(l, 2):
         acc += v

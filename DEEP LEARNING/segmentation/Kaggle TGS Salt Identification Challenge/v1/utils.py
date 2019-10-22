@@ -1,5 +1,6 @@
 import logging
 import os
+
 # import pathlib
 import random
 import sys
@@ -16,61 +17,71 @@ import yaml
 from imgaug import augmenters as iaa
 import imgaug as ia
 
+
 def do_length_encode(x):
     bs = np.where(x.T.flatten())[0]
 
     rle = []
     prev = -2
     for b in bs:
-        if (b>prev+1): rle.extend((b + 1, 0))
+        if b > prev + 1:
+            rle.extend((b + 1, 0))
         rle[-1] += 1
         prev = b
 
-    #https://www.kaggle.com/c/data-science-bowl-2018/discussion/48561#
-    #if len(rle)!=0 and rle[-1]+rle[-2] == x.size:
+    # https://www.kaggle.com/c/data-science-bowl-2018/discussion/48561#
+    # if len(rle)!=0 and rle[-1]+rle[-2] == x.size:
     #    rle[-2] = rle[-2] -1
 
-    rle = ' '.join([str(r) for r in rle])
+    rle = " ".join([str(r) for r in rle])
     return rle
 
+
 from math import isnan
+
+
 def do_length_decode(rle, H, W, fill_value=255):
-    mask = np.zeros((H,W), np.uint8)
-    if type(rle).__name__ == 'float': return mask
+    mask = np.zeros((H, W), np.uint8)
+    if type(rle).__name__ == "float":
+        return mask
 
     mask = mask.reshape(-1)
-    rle = np.array([int(s) for s in rle.split(' ')]).reshape(-1, 2)
+    rle = np.array([int(s) for s in rle.split(" ")]).reshape(-1, 2)
     for r in rle:
-        start = r[0]-1
+        start = r[0] - 1
         end = start + r[1]
-        mask[start : end] = fill_value
-    mask = mask.reshape(W, H).T   # H, W need to swap as transposing.
+        mask[start:end] = fill_value
+    mask = mask.reshape(W, H).T  # H, W need to swap as transposing.
     return mask
+
 
 def decode_csv(csv_name):
     import pandas as pd
+
     data = pd.read_csv(csv_name)
-    id = data['id']
-    rle_mask = data['rle_mask']
+    id = data["id"]
+    rle_mask = data["rle_mask"]
 
     dict = {}
-    for id, rle in zip(id,rle_mask):
+    for id, rle in zip(id, rle_mask):
         tmp = do_length_decode(rle, 101, 101, fill_value=1)
         dict[id] = tmp
 
     return dict
 
+
 def save_id_fea(predict_dict, save_dir):
     for id in predict_dict:
         output_mat = predict_dict[id].astype(np.float32)
-        np.save(os.path.join(save_dir,id), output_mat)
+        np.save(os.path.join(save_dir, id), output_mat)
+
 
 def state_dict_remove_moudle(moudle_state_dict, model):
     state_dict = model.state_dict()
     keys = list(moudle_state_dict.keys())
     for key in keys:
-        print(key + ' loaded')
-        new_key = key.replace(r'module.', r'')
+        print(key + " loaded")
+        new_key = key.replace(r"module.", r"")
         print(new_key)
         state_dict[new_key] = moudle_state_dict[key]
 
@@ -79,12 +90,12 @@ def state_dict_remove_moudle(moudle_state_dict, model):
 
 from matplotlib import pyplot as plt
 
-def write_and_plot(name, aver_num, logits, max_y = 1.0, color="blue"):
 
+def write_and_plot(name, aver_num, logits, max_y=1.0, color="blue"):
     def moving_average(a, n=aver_num):
         ret = np.cumsum(a, dtype=float)
         ret[n:] = ret[n:] - ret[:-n]
-        return ret[n - 1:] / n
+        return ret[n - 1 :] / n
 
     # ===========================================================
     moving_plot = moving_average(np.array(logits))
@@ -100,14 +111,15 @@ def decompose(labeled):
     masks = []
     for i in range(1, nr_true + 1):
         msk = labeled.copy()
-        msk[msk != i] = 0.
-        msk[msk == i] = 255.
+        msk[msk != i] = 0.0
+        msk[msk == i] = 255.0
         masks.append(msk)
 
     if not masks:
         return [labeled]
     else:
         return masks
+
 
 def encode_rle(predictions):
     return [run_length_encoding(mask) for mask in predictions]
@@ -118,11 +130,12 @@ def create_submission(predictions):
     for image_id, mask in predictions:
         # print(image_id)
 
-        rle_encoded = ' '.join(str(rle) for rle in run_length_encoding(mask))
+        rle_encoded = " ".join(str(rle) for rle in run_length_encoding(mask))
         output.append([image_id, rle_encoded])
 
-    submission = pd.DataFrame(output, columns=['id', 'rle_mask']).astype(str)
+    submission = pd.DataFrame(output, columns=["id", "rle_mask"]).astype(str)
     return submission
+
 
 def run_length_encoding(x):
     # https://www.kaggle.com/c/data-science-bowl-2018/discussion/48561#
@@ -131,11 +144,12 @@ def run_length_encoding(x):
     rle = []
     prev = -2
     for b in bs:
-        if (b > prev + 1): rle.extend((b + 1, 0))
+        if b > prev + 1:
+            rle.extend((b + 1, 0))
         rle[-1] += 1
         prev = b
 
-    if len(rle) != 0 and rle[-1] + rle[-2] > (x.size+1):
+    if len(rle) != 0 and rle[-1] + rle[-2] > (x.size + 1):
         rle[-2] = rle[-2] - 1
 
     return rle
@@ -163,7 +177,7 @@ def run_length_decoding(mask_rle, shape):
 
 
 def sigmoid(x):
-    return 1. / (1 + np.exp(-x))
+    return 1.0 / (1 + np.exp(-x))
 
 
 def softmax(X, theta=1.0, axis=None):
@@ -206,7 +220,8 @@ def softmax(X, theta=1.0, axis=None):
     p = y / ax_sum
 
     # flatten if X was 1D
-    if len(X.shape) == 1: p = p.flatten()
+    if len(X.shape) == 1:
+        p = p.flatten()
 
     return p
 

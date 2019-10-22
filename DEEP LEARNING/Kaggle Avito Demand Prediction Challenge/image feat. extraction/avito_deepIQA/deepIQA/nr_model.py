@@ -9,29 +9,22 @@ xp = cuda.cupy
 
 
 class Model(chainer.Chain):
-
     def __init__(self, top="patchwise"):
         super(Model, self).__init__(
             conv1=L.Convolution2D(3, 32, 3, pad=1),
             conv2=L.Convolution2D(32, 32, 3, pad=1),
-
             conv3=L.Convolution2D(32, 64, 3, pad=1),
             conv4=L.Convolution2D(64, 64, 3, pad=1),
-
             conv5=L.Convolution2D(64, 128, 3, pad=1),
             conv6=L.Convolution2D(128, 128, 3, pad=1),
-
             conv7=L.Convolution2D(128, 256, 3, pad=1),
             conv8=L.Convolution2D(256, 256, 3, pad=1),
-
             conv9=L.Convolution2D(256, 512, 3, pad=1),
             conv10=L.Convolution2D(512, 512, 3, pad=1),
-
             fc1=L.Linear(512, 512),
             fc2=L.Linear(512, 1),
-
             fc1_a=L.Linear(512, 512),
-            fc2_a=L.Linear(512, 1)
+            fc2_a=L.Linear(512, 1),
         )
 
         self.top = top

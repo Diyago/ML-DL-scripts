@@ -6,6 +6,7 @@ def mean_score(scores):
     mean = np.sum(q * si, axis=1)
     return mean
 
+
 # calculate standard deviation of scores for AVA dataset
 def std_score(scores):
     si = np.arange(1, 11, 1)

@@ -5,11 +5,13 @@ from data_process.transform import *
 import random
 import pandas as pd
 
+
 def read_txt(txt):
-    f = open(txt, 'r')
+    f = open(txt, "r")
     lines = f.readlines()
     f.close()
     return [tmp.strip() for tmp in lines]
+
 
 class SaltDataset(Dataset):
     def __init__(self, transform, mode, image_size, fold_index, aug_list):
@@ -19,56 +21,69 @@ class SaltDataset(Dataset):
         self.image_size = image_size
         self.aug_list = aug_list
 
-        print('AugList: ')
+        print("AugList: ")
         print(self.aug_list)
 
         # change to your path
-        self.train_image_path = r'/data1/dex/DATA/Kaggle/Salt/Kaggle_salt/train/images'
-        self.train_mask_path = r'/data1/dex/DATA/Kaggle/Salt/Kaggle_salt/train/masks'
-        self.test_image_path = r'/data1/dex/DATA/Kaggle/Salt/Kaggle_salt/test/images'
+        self.train_image_path = r"/data1/dex/DATA/Kaggle/Salt/Kaggle_salt/train/images"
+        self.train_mask_path = r"/data1/dex/DATA/Kaggle/Salt/Kaggle_salt/train/masks"
+        self.test_image_path = r"/data1/dex/DATA/Kaggle/Salt/Kaggle_salt/test/images"
 
         self.fold_index = None
         self.set_mode(mode, fold_index)
 
-
     def set_mode(self, mode, fold_index):
         self.mode = mode
         self.fold_index = fold_index
-        print('fold index set: ' + str(fold_index))
+        print("fold index set: " + str(fold_index))
 
-        if self.mode == 'train':
-            data = pd.read_csv('./data_process/10fold/fold' + str(fold_index) + '_train.csv')
-            self.train_list = data['fold']
-            self.train_list = [tmp + '.png' for tmp in self.train_list]
+        if self.mode == "train":
+            data = pd.read_csv(
+                "./data_process/10fold/fold" + str(fold_index) + "_train.csv"
+            )
+            self.train_list = data["fold"]
+            self.train_list = [tmp + ".png" for tmp in self.train_list]
             self.num_data = len(self.train_list)
 
-        elif self.mode == 'val':
-            data = pd.read_csv('./data_process/10fold/fold' + str(fold_index) + '_valid.csv')
-            self.val_list = data['fold']
-            self.val_list = [tmp + '.png' for tmp in self.val_list]
+        elif self.mode == "val":
+            data = pd.read_csv(
+                "./data_process/10fold/fold" + str(fold_index) + "_valid.csv"
+            )
+            self.val_list = data["fold"]
+            self.val_list = [tmp + ".png" for tmp in self.val_list]
             self.num_data = len(self.val_list)
 
-        elif self.mode == 'test':
-            self.test_list = read_txt('./data_process/10fold/test.txt')
+        elif self.mode == "test":
+            self.test_list = read_txt("./data_process/10fold/test.txt")
             self.num_data = len(self.test_list)
-            print('set dataset mode: test')
+            print("set dataset mode: test")
 
     def __getitem__(self, index):
         if self.fold_index is None:
-            print('WRONG!!!!!!! fold index is NONE!!!!!!!!!!!!!!!!!')
+            print("WRONG!!!!!!! fold index is NONE!!!!!!!!!!!!!!!!!")
             return
 
-        if self.mode == 'train':
-            image = cv2.imread(os.path.join(self.train_image_path, self.train_list[index]), 1)
-            label = cv2.imread(os.path.join(self.train_mask_path, self.train_list[index]), 0)
+        if self.mode == "train":
+            image = cv2.imread(
+                os.path.join(self.train_image_path, self.train_list[index]), 1
+            )
+            label = cv2.imread(
+                os.path.join(self.train_mask_path, self.train_list[index]), 0
+            )
 
-        if self.mode == 'val':
-            image = cv2.imread(os.path.join(self.train_image_path, self.val_list[index]), 1)
-            label = cv2.imread(os.path.join(self.train_mask_path, self.val_list[index]), 0)
+        if self.mode == "val":
+            image = cv2.imread(
+                os.path.join(self.train_image_path, self.val_list[index]), 1
+            )
+            label = cv2.imread(
+                os.path.join(self.train_mask_path, self.val_list[index]), 0
+            )
 
-        if self.mode == 'test':
-            image = cv2.imread(os.path.join(self.test_image_path, self.test_list[index]), 1)
-            image_id = self.test_list[index].replace('.png', '')
+        if self.mode == "test":
+            image = cv2.imread(
+                os.path.join(self.test_image_path, self.test_list[index]), 1
+            )
+            image_id = self.test_list[index].replace(".png", "")
 
             if self.image_size == 128:
                 image = resize_and_pad(image, resize_size=101, factor=64)
@@ -84,8 +99,10 @@ class SaltDataset(Dataset):
         if np.sum(label) == 0:
             is_empty = True
 
-        if self.mode == 'train':
-            image, label = resize_and_random_pad(image, label, resize_size=101, factor=128, limit=(-13, 13))
+        if self.mode == "train":
+            image, label = resize_and_random_pad(
+                image, label, resize_size=101, factor=128, limit=(-13, 13)
+            )
         else:
             image = resize_and_pad(image, resize_size=101, factor=128)
             label = resize_and_pad(label, resize_size=101, factor=128)
@@ -93,8 +110,8 @@ class SaltDataset(Dataset):
         image = cv2.resize(image, (self.image_size, self.image_size))
         label = cv2.resize(label, (self.image_size, self.image_size))
 
-        if self.mode == 'train':
-            if 'flip_lr' in self.aug_list:
+        if self.mode == "train":
+            if "flip_lr" in self.aug_list:
                 if random.randint(0, 1) == 0:
                     image = cv2.flip(image, 1)
                     label = cv2.flip(label, 1)
@@ -115,18 +132,16 @@ class SaltDataset(Dataset):
         return self.num_data
 
 
-def get_foldloader(image_size, batch_size, fold_index, aug_list = None, mode='train'):
+def get_foldloader(image_size, batch_size, fold_index, aug_list=None, mode="train"):
 
     """Build and return data loader."""
     dataset = SaltDataset(None, mode, image_size, fold_index, aug_list)
 
     shuffle = False
-    if mode == 'train':
+    if mode == "train":
         shuffle = True
 
-    data_loader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=4, shuffle=shuffle)
+    data_loader = DataLoader(
+        dataset=dataset, batch_size=batch_size, num_workers=4, shuffle=shuffle
+    )
     return data_loader
-
-
-
-

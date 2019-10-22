@@ -14,7 +14,7 @@ from tqdm import tqdm
 from deepIQA.fr_model import FRModel
 from deepIQA.nr_model import Model
 
-top='models/nr_live_weighted.model'
+top = "models/nr_live_weighted.model"
 
 model = Model(top=top)
 
@@ -24,12 +24,12 @@ xp = cuda.cupy
 serializers.load_hdf5(top, model)
 model.to_gpu()
 
-images_path = '../../test_jpg/'
+images_path = "../../test_jpg/"
 # images_path_test = '../input/test_jpg/'
 names = []
 extracted_features = []
 
-file_path = '../input/deepIQA_features_test.csv'
+file_path = "../input/deepIQA_features_test.csv"
 os.mknod(file_path)
 
 train_ids = next(os.walk(images_path))[2]
@@ -46,7 +46,7 @@ for name in tqdm(train_ids):
         batchsize = min(2000, X.shape[0])
         t = xp.zeros((1, 1), np.float32)
         for i in six.moves.range(0, X.shape[0], batchsize):
-            X_batch = X[i:i + batchsize]
+            X_batch = X[i : i + batchsize]
             X_batch = xp.array(X_batch.astype(np.float32))
 
             model.forward(X_batch, t, False, X_batch.shape[0])
@@ -64,12 +64,25 @@ for name in tqdm(train_ids):
         if len(names) >= 10000:
             df = pd.DataFrame(extracted_features)
             se = pd.Series(names)
-            df['ids'] = se.values  # df.set_index('id', inplace=True)
+            df["ids"] = se.values  # df.set_index('id', inplace=True)
             if f:
-                df.to_csv(file_path, mode='a', index_label=False, index=False, chunksize=len(names))
+                df.to_csv(
+                    file_path,
+                    mode="a",
+                    index_label=False,
+                    index=False,
+                    chunksize=len(names),
+                )
                 f = False
             else:
-                df.to_csv(file_path, mode='a', index_label=False, index=False, chunksize=len(names), header=False)
+                df.to_csv(
+                    file_path,
+                    mode="a",
+                    index_label=False,
+                    index=False,
+                    chunksize=len(names),
+                    header=False,
+                )
             names = []
             extracted_features = []
     except:
@@ -78,17 +91,26 @@ for name in tqdm(train_ids):
 if len(names) > 0:
     df = pd.DataFrame(extracted_features)
     se = pd.Series(names)
-    df['ids'] = se.values  # df.set_index('id', inplace=True)
+    df["ids"] = se.values  # df.set_index('id', inplace=True)
     if f:
-        df.to_csv(file_path, mode='a', index_label=False, index=False, chunksize=len(names))
+        df.to_csv(
+            file_path, mode="a", index_label=False, index=False, chunksize=len(names)
+        )
         f = False
     else:
-        df.to_csv(file_path, mode='a', index_label=False, index=False, chunksize=len(names), header=False)
+        df.to_csv(
+            file_path,
+            mode="a",
+            index_label=False,
+            index=False,
+            chunksize=len(names),
+            header=False,
+        )
 
-    '''
+    """
     --model
     models/nr_tid_patchwise.model
     --top
     patchwise
     /home/alex/work/py/avito/input/train_jpg/0a0a5a3f22320e0508139273d23f390ca837aef252036034ed640fb939529bd9.jpg
-    '''
+    """
