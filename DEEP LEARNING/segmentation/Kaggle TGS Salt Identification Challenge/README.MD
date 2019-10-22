@@ -17,7 +17,5 @@ I with my team ranked 27th (TOP 1%) in the TGS Salt Identification Challenge on 
 Teammates:
 
 * Mikhail Karchevskiy
-* Leonid Kozinkin
- 
-I want to thank opendatascience (http://ODS.ai/) community.
+* Leonid Kozinkin 
 
