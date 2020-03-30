@@ -37,7 +37,7 @@ The repository provides usefull python scripts for ML and DL
           ![Anomaly detection](./images/img_class.png)
       * [Object detection](https://github.com/Diyago/ML-DL-scripts/tree/master/DEEP%20LEARNING/Object%20detection)
 
-      ![Object detecyion](./images/object_detection.jpg)
+      ![Object detecyion](./images/object_detections.jpg)
         
       * [Pytorch tutorials](https://github.com/Diyago/ML-DL-scripts/tree/master/DEEP%20LEARNING/Pytorch%20from%20scratch)
       * [Segmentations tasks](https://github.com/Diyago/ML-DL-scripts/tree/master/DEEP%20LEARNING/segmentation)
