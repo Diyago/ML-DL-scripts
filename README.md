@@ -4,6 +4,7 @@
 
 ![Insaf Ashrapov's github stats](https://github-readme-stats.vercel.app/api?username=diyago&show_icons=true&theme=dark)
 
+https://t.me/ai_tablet 
 
 # Machine Learning and Deep learning scripts
 The repository provides usefull python scripts for ML and DL
