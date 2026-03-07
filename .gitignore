@@ -5,10 +5,35 @@ __pycache__/
 
 # C extensions
 *.so
+
+# Data files
 *.csv
+*.tsv
+*.json
+*.parquet
+*.feather
+*.pkl
+*.pickle
+
+# ML model artifacts
+*.h5
+*.hdf5
+*.onnx
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.pb
+saved_model/
+checkpoints/
+models/
+
 # Distribution / packaging
 .Python
 env/
+venv/
+.venv/
+ENV/
 build/
 develop-eggs/
 dist/
@@ -24,9 +49,10 @@ var/
 .installed.cfg
 *.egg
 *.rar
+*.zip
+*.tar.gz
+
 # PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 *.swp
@@ -35,6 +61,7 @@ var/
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
+requirements.txt.lock
 
 # Unit test / coverage reports
 htmlcov/
@@ -46,13 +73,15 @@ nosetests.xml
 coverage.xml
 *,cover
 .hypothesis/
+.pytest_cache/
 
 # Translations
 *.mo
 *.pot
 
-# Django stuff:
+# Logs
 *.log
+logs/
 
 # Sphinx documentation
 docs/_build/
@@ -60,7 +89,35 @@ docs/_build/
 # PyBuilder
 target/
 
-#Ipython Notebook
+# Jupyter Notebook
 .ipynb_checkpoints
+*.ipynb
 
-*.h5
+# IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment files
+.env
+.env.local
+*.env.yaml
+*.env.json
+
+# TensorBoard
+runs/
+tensorboard/
+
+# Weights & Biases
+wandb/
+
+# MLflow
+mlruns/
+mlartifacts/
